@@ -2,6 +2,7 @@
 
 // CSS TO RTL
 // BY in:@elyarxan (Mohammad Falahat)
+// Github: falahatme
 // WWW.FLHT.IR
 
 function BreakCSS($css, $sub = false)
@@ -105,9 +106,6 @@ if (isset($_FILES['css'])) {
     $text = preg_replace('/\n\s*\n/', "\n", $text);
     $cssArray = BreakCSS(str_replace($newline, '', $text));
     //print_r($cssArray);
-?>
-
-    <?php
 
     $outputStr = "\r\n\r\n";
 
@@ -278,10 +276,10 @@ if (isset($_FILES['css'])) {
                     $outputStr .= $cssItemKey . "{\r\n";
 
                     foreach ($cssItemValue as $cssSubItemKey => $cssSubItemValue) {
-                        $outputStr .= $cssSubItemKey . ": " . $cssSubItemValue . ";\r\n";
+                        $outputStr .= '  ' . $cssSubItemKey . ": " . $cssSubItemValue . ";\r\n";
                     }
 
-                    $outputStr .= "\r\n}\r\n";
+                    $outputStr .= "}\r\n";
                 } else
                     $outputStr .= $cssItemKey . ": " . $cssItemValue . ";\r\n";
             }
