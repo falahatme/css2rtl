@@ -1,0 +1,21 @@
+body{
+    direction: ltr;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+form{
+    margin: 0;
+}
+
+.card{
+    width: 80vw;
+    margin: 25px auto;
+    padding: 25px;
+}
+
+.rtl{
+    direction: rtl;
+}
