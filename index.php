@@ -281,9 +281,9 @@ if (isset($_FILES['css'])) {
 
                     $outputStr .= "}\r\n";
                 } else
-                    $outputStr .= $cssItemKey . ": " . $cssItemValue . ";\r\n";
+                    $outputStr .= '  ' . $cssItemKey . ": " . $cssItemValue . ";\r\n";
             }
-            $outputStr .= "\r\n}\r\n";
+            $outputStr .= "}\r\n";
 
 
             $outputStr .= "\r\n";
