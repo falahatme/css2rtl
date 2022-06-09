@@ -26,8 +26,6 @@ function BreakCSS($css, $sub = false)
                         $results[trim($matches[1][$i])][trim($name)] = trim(substr($value, 0, strpos($value, '/*')));
                 } else
                     $results[trim($matches[1][$i])][] = BreakCSS($matches[2][$i] . '}', true);
-
-
             }
     return $results;
 }
@@ -35,49 +33,35 @@ function BreakCSS($css, $sub = false)
 
 $newline = '
 ';
-?>
 
 
-<html>
+if (isset($_FILES['css'])) {
 
-<head>
-    <title>اسکریپت راست چین کردن استایل ها توسط محمد فلاحت</title>
-    <link rel="stylesheet" href="./css/bootstrap.min.css">
-    <link rel="stylesheet" href="./css/style.css">
+    @$postfix = array_pop(explode('.', $_FILES['css']['name']));
+    $foundFonts = 0;
 
-</head>
+    if ($postfix != 'css') die("FILE TYPE IS NOT CSS.");
 
-<body>
+    $lookingFor = [
+        'margin' => 'inline',
+        'padding' => 'inline',
+        'direction' => 'reverse',
+        'text-align' => 'reverse',
+        'float' => 'reverse',
+        'font' => 'add',
+        'font-family' => 'add',
+        'margin-right' => 'margin-left',
+        'margin-left' => 'margin-right',
+        'padding-left' => 'padding-right',
+        'padding-right' => 'padding-left',
+        'border-left' => 'border-right',
+        'border-right' => 'border-left',
+        'left' => 'right',
+        'right' => 'left',
 
-    <?php
+    ];
 
-    if (isset($_FILES['css'])) {
-
-        @$postfix = array_pop(explode('.', $_FILES['css']['name']));
-        $foundFonts = 0;
-
-        if ($postfix != 'css') die("FILE TYPE IS NOT CSS.");
-
-        $lookingFor = [
-            'margin' => 'inline',
-            'padding' => 'inline',
-            'direction' => 'reverse',
-            'text-align' => 'reverse',
-            'float' => 'reverse',
-            'font' => 'add',
-            'font-family' => 'add',
-            'margin-right' => 'margin-left',
-            'margin-left' => 'margin-right',
-            'padding-left' => 'padding-right',
-            'padding-right' => 'padding-left',
-            'border-left' => 'border-right',
-            'border-right' => 'border-left',
-            'left' => 'right',
-            'right' => 'left',
-
-        ];
-
-        $fontStr = '@font-face {
+    $fontStr = '@font-face {
         font-family: "Vazir";
         src: url("https://fdn.fontcdn.ir/Fonts/Vazir/ad3cd4cbda94aee8578c1b622b9002f9dfe345c05870eb375a02da853d08f072.woff2") format("woff2");
         font-weight: 100;
@@ -116,127 +100,51 @@ $newline = '
 
 ';
 
-        $text = file_get_contents($_FILES['css']['tmp_name']);
-        $text = preg_replace('!/\*.*?\*/!s', '', $text);
-        $text = preg_replace('/\n\s*\n/', "\n", $text);
-        $cssArray = BreakCSS(str_replace($newline, '', $text));
-        //print_r($cssArray);
-    ?>
+    $text = file_get_contents($_FILES['css']['tmp_name']);
+    $text = preg_replace('!/\*.*?\*/!s', '', $text);
+    $text = preg_replace('/\n\s*\n/', "\n", $text);
+    $cssArray = BreakCSS(str_replace($newline, '', $text));
+    //print_r($cssArray);
+?>
 
-        <div class="card">
+    <?php
 
-            <?php
+    $outputStr = "\r\n\r\n";
 
-            $outputStr = "\r\n\r\n";
-
-            foreach ($cssArray as $cssSelector => $cssItems) {
-                $newSelector = [];
+    foreach ($cssArray as $cssSelector => $cssItems) {
+        $newSelector = [];
 
 
-                if(strpos($cssSelector, '@media')!==false) {
-                    
-                    foreach ($cssItems as $cssItemKeyItem)
-                    {
-                        //@media is $cssSelector
-                        //.element is $cssSubItemsKey
-                        
-                        foreach($cssItemKeyItem as $cssSubItemsKey =>  $cssSubItemsValues)
-                        foreach ($cssSubItemsValues as $cssSubItemKey => $cssSubItemValue) {
-                            
-                            if (array_key_exists($cssSubItemKey, $lookingFor)) {
+        if (strpos($cssSelector, '@media') !== false) {
 
-                                switch ($lookingFor[$cssSubItemKey]) {
+            foreach ($cssItems as $cssItemKeyItem) {
+                //@media is $cssSelector
+                //.element is $cssSubItemsKey
 
+                foreach ($cssItemKeyItem as $cssSubItemsKey =>  $cssSubItemsValues)
+                    foreach ($cssSubItemsValues as $cssSubItemKey => $cssSubItemValue) {
 
-                                    case 'inline':
+                        if (array_key_exists($cssSubItemKey, $lookingFor)) {
 
-                                        $important = false;
-                                        if (strpos($cssSubItemValue, 'important') > 0) {
-                                            $important = true;
-                                            $cssSubItemValue = str_replace('!important', '', $cssSubItemValue);
-                                        }
-
-                                        $splittedCssSubItemValue = explode(' ', trim($cssSubItemValue));
-
-                                        if (count($splittedCssSubItemValue) > 3) {
-
-                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = $splittedCssSubItemValue[0] . ' ' . $splittedCssSubItemValue[3] . ' ' . $splittedCssSubItemValue[2] . ' ' . $splittedCssSubItemValue[1];
-
-                                            if ($important)
-                                                $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] .= ' !important';
-                                        }
-
-                                        break;
-
-
-                                    case 'reverse':
-
-                                        if ("left" == trim($cssSubItemValue))
-                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "right";
-                                        else if ("right" == trim($cssSubItemValue))
-                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "left";
-
-                                        if ("ltr" == trim($cssSubItemValue))
-                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "rtl";
-                                        else if ("rtl" == trim($cssSubItemValue))
-                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "ltr";
-
-                                        break;
-
-
-                                    case 'add':
-
-                                        $foundFonts++;
-                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "'Vazir', " . $cssSubItemValue;
-
-                                        break;
-
-
-                                    default:
-
-                                        if (!isset($newSelector[$cssSelector][$cssSubItemsKey])){
-                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "initial";
-
-                                            if (strpos($cssSubItemValue, 'important') > 0)
-                                                $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] .= " !important";
-                                        }
-
-                                        $newSelector[$cssSelector][$cssSubItemsKey][$lookingFor[$cssSubItemKey]] = $cssSubItemValue;
-
-                                        break;
-                                }
-
-                                //$newSelector[$cssSelector][$cssSubItemsKey] = "";
-
-                            }
-                        }
-                    }
-                } else {
-                    foreach ($cssItems as $cssItemKey => $cssItemValue) {
-
-                        if (array_key_exists($cssItemKey, $lookingFor)) {
-
-                            //echo "<br>$cssItemKey : $cssItemValue : " . $lookingFor[$cssItemKey];
-
-                            switch ($lookingFor[$cssItemKey]) {
+                            switch ($lookingFor[$cssSubItemKey]) {
 
 
                                 case 'inline':
 
                                     $important = false;
-                                    if (strpos($cssItemValue, 'important') > 0) {
+                                    if (strpos($cssSubItemValue, 'important') > 0) {
                                         $important = true;
-                                        $cssItemValue = str_replace('!important', '', $cssItemValue);
+                                        $cssSubItemValue = str_replace('!important', '', $cssSubItemValue);
                                     }
 
-                                    $splittedCssItemValue = explode(' ', trim($cssItemValue));
+                                    $splittedCssSubItemValue = explode(' ', trim($cssSubItemValue));
 
-                                    if (count($splittedCssItemValue) > 3) {
+                                    if (count($splittedCssSubItemValue) > 3) {
 
-                                        $newSelector[$cssSelector][$cssItemKey] = $splittedCssItemValue[0] . ' ' . $splittedCssItemValue[3] . ' ' . $splittedCssItemValue[2] . ' ' . $splittedCssItemValue[1];
+                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = $splittedCssSubItemValue[0] . ' ' . $splittedCssSubItemValue[3] . ' ' . $splittedCssSubItemValue[2] . ' ' . $splittedCssSubItemValue[1];
 
                                         if ($important)
-                                            $newSelector[$cssSelector][$cssItemKey] .= ' !important';
+                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] .= ' !important';
                                     }
 
                                     break;
@@ -244,15 +152,15 @@ $newline = '
 
                                 case 'reverse':
 
-                                    if ("left" == trim($cssItemValue))
-                                        $newSelector[$cssSelector][$cssItemKey] = "right";
-                                    else if ("right" == trim($cssItemValue))
-                                        $newSelector[$cssSelector][$cssItemKey] = "left";
+                                    if ("left" == trim($cssSubItemValue))
+                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "right";
+                                    else if ("right" == trim($cssSubItemValue))
+                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "left";
 
-                                    if ("ltr" == trim($cssItemValue))
-                                        $newSelector[$cssSelector][$cssItemKey] = "rtl";
-                                    else if ("rtl" == trim($cssItemValue))
-                                        $newSelector[$cssSelector][$cssItemKey] = "ltr";
+                                    if ("ltr" == trim($cssSubItemValue))
+                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "rtl";
+                                    else if ("rtl" == trim($cssSubItemValue))
+                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "ltr";
 
                                     break;
 
@@ -260,83 +168,184 @@ $newline = '
                                 case 'add':
 
                                     $foundFonts++;
-                                    $newSelector[$cssSelector][$cssItemKey] = "'Vazir', " . $cssItemValue;
+                                    $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "'Vazir', " . $cssSubItemValue;
 
                                     break;
 
 
                                 default:
 
-                                    if (!isset($newSelector[$cssSelector][$cssItemKey]))
-                                    {
-                                        $newSelector[$cssSelector][$cssItemKey] = "initial";
+                                    if (!isset($newSelector[$cssSelector][$cssSubItemsKey])) {
+                                        $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] = "initial";
 
-                                        if (strpos($cssItemValue, 'important') > 0)
-                                            $newSelector[$cssSelector][$cssItemKey] .= " !important";
+                                        if (strpos($cssSubItemValue, 'important') > 0)
+                                            $newSelector[$cssSelector][$cssSubItemsKey][$cssSubItemKey] .= " !important";
                                     }
 
-                                    $newSelector[$cssSelector][$lookingFor[$cssItemKey]] = $cssItemValue;
+                                    $newSelector[$cssSelector][$cssSubItemsKey][$lookingFor[$cssSubItemKey]] = $cssSubItemValue;
 
                                     break;
                             }
 
-                            //$newSelector[$cssSelector][$cssItemKey] = "";
+                            //$newSelector[$cssSelector][$cssSubItemsKey] = "";
 
                         }
                     }
-                }
+            }
+        } else {
+            foreach ($cssItems as $cssItemKey => $cssItemValue) {
+
+                if (array_key_exists($cssItemKey, $lookingFor)) {
+
+                    //echo "<br>$cssItemKey : $cssItemValue : " . $lookingFor[$cssItemKey];
+
+                    switch ($lookingFor[$cssItemKey]) {
 
 
-                if (isset($newSelector[$cssSelector])) {
-                    $outputStr .= "\r\n";
+                        case 'inline':
 
-                    $outputStr .= $cssSelector . "{\r\n";
-                    foreach ($newSelector[$cssSelector] as $cssItemKey => $cssItemValue) {
-
-                        if (is_array($cssItemValue)) {
-
-                            $outputStr .= $cssItemKey . "{\r\n";
-
-                            foreach ($cssItemValue as $cssSubItemKey => $cssSubItemValue) {
-                                $outputStr .= $cssSubItemKey . ": " . $cssSubItemValue . ";\r\n";
+                            $important = false;
+                            if (strpos($cssItemValue, 'important') > 0) {
+                                $important = true;
+                                $cssItemValue = str_replace('!important', '', $cssItemValue);
                             }
 
-                            $outputStr .= "\r\n}\r\n";
+                            $splittedCssItemValue = explode(' ', trim($cssItemValue));
 
-                        } else
-                            $outputStr .= $cssItemKey . ": " . $cssItemValue . ";\r\n";
+                            if (count($splittedCssItemValue) > 3) {
+
+                                $newSelector[$cssSelector][$cssItemKey] = $splittedCssItemValue[0] . ' ' . $splittedCssItemValue[3] . ' ' . $splittedCssItemValue[2] . ' ' . $splittedCssItemValue[1];
+
+                                if ($important)
+                                    $newSelector[$cssSelector][$cssItemKey] .= ' !important';
+                            }
+
+                            break;
+
+
+                        case 'reverse':
+
+                            if ("left" == trim($cssItemValue))
+                                $newSelector[$cssSelector][$cssItemKey] = "right";
+                            else if ("right" == trim($cssItemValue))
+                                $newSelector[$cssSelector][$cssItemKey] = "left";
+
+                            if ("ltr" == trim($cssItemValue))
+                                $newSelector[$cssSelector][$cssItemKey] = "rtl";
+                            else if ("rtl" == trim($cssItemValue))
+                                $newSelector[$cssSelector][$cssItemKey] = "ltr";
+
+                            break;
+
+
+                        case 'add':
+
+                            $foundFonts++;
+                            $newSelector[$cssSelector][$cssItemKey] = "'Vazir', " . $cssItemValue;
+
+                            break;
+
+
+                        default:
+
+                            if (!isset($newSelector[$cssSelector][$cssItemKey])) {
+                                $newSelector[$cssSelector][$cssItemKey] = "initial";
+
+                                if (strpos($cssItemValue, 'important') > 0)
+                                    $newSelector[$cssSelector][$cssItemKey] .= " !important";
+                            }
+
+                            $newSelector[$cssSelector][$lookingFor[$cssItemKey]] = $cssItemValue;
+
+                            break;
                     }
-                    $outputStr .= "\r\n}\r\n";
 
+                    //$newSelector[$cssSelector][$cssItemKey] = "";
 
-                    $outputStr .= "\r\n";
                 }
             }
+        }
 
-            $outputStr = "\r\n body{direction: rtl;} \r\n" . $outputStr;
 
-            if ($foundFonts > 0)
-                $outputStr = $fontStr . $outputStr;
+        if (isset($newSelector[$cssSelector])) {
+            $outputStr .= "\r\n";
 
-            echo $outputStr;
+            $outputStr .= $cssSelector . "{\r\n";
+            foreach ($newSelector[$cssSelector] as $cssItemKey => $cssItemValue) {
 
-            ?>
+                if (is_array($cssItemValue)) {
 
+                    $outputStr .= $cssItemKey . "{\r\n";
+
+                    foreach ($cssItemValue as $cssSubItemKey => $cssSubItemValue) {
+                        $outputStr .= $cssSubItemKey . ": " . $cssSubItemValue . ";\r\n";
+                    }
+
+                    $outputStr .= "\r\n}\r\n";
+                } else
+                    $outputStr .= $cssItemKey . ": " . $cssItemValue . ";\r\n";
+            }
+            $outputStr .= "\r\n}\r\n";
+
+
+            $outputStr .= "\r\n";
+        }
+    }
+
+    $outputStr = "\r\n body{direction: rtl;} \r\n" . $outputStr;
+
+    if ($foundFonts > 0)
+        $outputStr = $fontStr . $outputStr;
+
+    ob_start();
+    header("Content-Type: text/css");
+    header("Content-Disposition: attachment; filename=rtl.css");
+    header("Content-Length: " . strlen($outputStr));
+    header("Content-Transfer-Encoding: binary");
+    //readfile($path);
+    echo $outputStr;
+    ob_end_flush();
+} else {
+    ?>
+
+    <html>
+
+    <head>
+        <title>اسکریپت راست چین کردن استایل ها توسط محمد فلاحت</title>
+        <link rel="stylesheet" href="./css/style.css">
+
+    </head>
+
+    <body>
+
+        <div class="card rtl d-none" id="submitted">
+            <h1>فایل rtl.css را در کنار استایل اصلی ذخیره کن</h1>
+            <p>
+                سپس، این خط رو بعد از استایل اصلی، در هدر صفحه html قرار بده:<br><span class="ltr">&lt;link rel=&quot;stylesheet&quot; href=&quot;./css/rtl.css&quot;&gt;</span>
+            </p>
         </div>
 
-    <?php
-
-    } else {
-    ?>
-        <div class="card rtl">
-            <form method="post" enctype="multipart/form-data">
-                <input type="file" name="css" />
+        <div class="card rtl" id="intro">
+            <div>
+                <h1>رایگان و سریع فایل های CSS رو راست چین کن!</h1>
+            </div>
+            <form method="post" enctype="multipart/form-data" onsubmit="submitted()">
+                <label for=css><input type="file" name="css" id="css" /><span>کلیک کن و فایل CSS را انتخاب کن</span></label>
                 <input type="submit" value="راست چین کن!" />
             </form>
         </div>
-    <?php
-    }
-    ?>
-</body>
+    </body>
 
-</html>
+    <script>
+
+    function submitted(){
+        document.getElementById('intro').style.display = "none";
+        document.getElementById('submitted').style.display = "block";
+    }
+
+    </script>
+
+    </html>
+<?php
+}
+?>
