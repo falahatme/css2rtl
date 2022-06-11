@@ -38,10 +38,15 @@ $newline = '
 
 if (isset($_FILES['css'])) {
 
-    @$postfix = array_pop(explode('.', $_FILES['css']['name']));
-    $foundFonts = 0;
+    foreach($_FILES['css']['name'] as $cssFile){
 
-    if ($postfix != 'css') die("FILE TYPE IS NOT CSS.");
+        @$postfix = array_pop(explode('.', $cssFile));
+        if ($postfix != 'css') die("FILE TYPE IS NOT CSS.");
+
+    }
+
+
+    $foundFonts = 0;
 
     $lookingFor = [
         'margin' => 'inline',
@@ -101,7 +106,11 @@ if (isset($_FILES['css'])) {
 
 ';
 
-    $text = file_get_contents($_FILES['css']['tmp_name']);
+    $text = '';
+    foreach($_FILES['css']['tmp_name'] as $tmpName)
+    {
+        $text .= file_get_contents($tmpName);
+    }
     $text = preg_replace('!/\*.*?\*/!s', '', $text);
     $text = preg_replace('/\n\s*\n/', "\n", $text);
     $cssArray = BreakCSS(str_replace($newline, '', $text));
@@ -290,7 +299,7 @@ if (isset($_FILES['css'])) {
         }
     }
 
-    $outputStr = "\r\n body{direction: rtl;} \r\n" . $outputStr;
+    $outputStr = "\r\n *{direction: rtl; text-align: right;} \r\n" . $outputStr;
 
     if ($foundFonts > 0)
         $outputStr = $fontStr . $outputStr;
@@ -328,7 +337,7 @@ if (isset($_FILES['css'])) {
                 <h1>رایگان و سریع فایل های CSS رو راست چین کن!</h1>
             </div>
             <form method="post" enctype="multipart/form-data" onsubmit="submitted()">
-                <label for=css><input type="file" name="css" id="css" /><span>کلیک کن و فایل CSS را انتخاب کن</span></label>
+                <label for=css><input type="file" name="css[]" multiple id="css" onchange="fileselected()" /><span id="cssValue">کلیک کن و یک یا چند فایل CSS انتخاب کن</span></label>
                 <input type="submit" value="راست چین کن!" />
             </form>
         </div>
@@ -339,6 +348,11 @@ if (isset($_FILES['css'])) {
     function submitted(){
         document.getElementById('intro').style.display = "none";
         document.getElementById('submitted').style.display = "block";
+    }
+
+    function fileselected(){
+        var selectedFilesCount = document.getElementById('css').files.length;
+        document.getElementById('cssValue').innerHTML = selectedFilesCount + ' فایل انتخاب شد.';
     }
 
     </script>

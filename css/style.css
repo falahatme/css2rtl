@@ -98,4 +98,13 @@ form > input{
     margin: 15px 0;
     padding: 15px;
     font-family: 'Vazir';
+    background: deepskyblue;
+    border: none;
+    color: white;
+    font-size: 13pt;
+}
+
+form > input:hover{
+    cursor: pointer;
+    background: rgb(77, 210, 255);
 }
