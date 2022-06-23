@@ -41,7 +41,18 @@ if (isset($_FILES['css'])) {
     foreach($_FILES['css']['name'] as $cssFile){
 
         @$postfix = array_pop(explode('.', $cssFile));
-        if ($postfix != 'css') die("FILE TYPE IS NOT CSS.");
+        if ($postfix != 'css' and !isset($_POST['editedValue'])) die("*{\r\ncontent: \"ERROR: File type is not CSS.\"\r\n}");
+
+    }
+
+    if(@$_POST['justecho'] == 'true'){
+ 
+        $text = '';
+        foreach($_FILES['css']['tmp_name'] as $tmpName)
+        {
+            $text .= file_get_contents($tmpName);
+        }
+        die($text);
 
     }
 
@@ -107,10 +118,13 @@ if (isset($_FILES['css'])) {
 ';
 
     $text = '';
-    foreach($_FILES['css']['tmp_name'] as $tmpName)
-    {
-        $text .= file_get_contents($tmpName);
-    }
+    if(isset($_POST['editedValue']))
+        $text = $_POST['editedValue'];
+    else
+        foreach($_FILES['css']['tmp_name'] as $tmpName)
+        {
+            $text .= file_get_contents($tmpName);
+        }
     $text = preg_replace('!/\*.*?\*/!s', '', $text);
     $text = preg_replace('/\n\s*\n/', "\n", $text);
     $cssArray = BreakCSS(str_replace($newline, '', $text));
@@ -304,56 +318,180 @@ if (isset($_FILES['css'])) {
     if ($foundFonts > 0)
         $outputStr = $fontStr . $outputStr;
 
-    ob_start();
+    /*ob_start();
     header("Content-Type: text/css");
     header("Content-Disposition: attachment; filename=rtl.css");
     header("Content-Length: " . strlen($outputStr));
-    header("Content-Transfer-Encoding: binary");
+    header("Content-Transfer-Encoding: binary");*/
     //readfile($path);
     echo $outputStr;
-    ob_end_flush();
+    //ob_end_flush();
 } else {
-    ?>
-
+    ?><!DOCTYPE html>
     <html>
-
     <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
         <title>اسکریپت راست چین کردن استایل ها توسط محمد فلاحت</title>
         <link rel="stylesheet" href="./css/style.css">
-
     </head>
 
     <body>
 
-        <div class="card rtl d-none" id="submitted">
-            <h1>فایل rtl.css را در کنار استایل اصلی ذخیره کن</h1>
-            <p>
-                سپس، این خط رو بعد از استایل اصلی، در هدر صفحه html قرار بده:<br><span class="ltr">&lt;link rel=&quot;stylesheet&quot; href=&quot;./css/rtl.css&quot;&gt;</span>
-            </p>
-        </div>
+		<div class="sidebar">
+			<h1>رایگان و سریع فایل های CSS را راست چین کن!</h1>
+			<h2>Margin &nbsp; Padding &nbsp; Border &nbsp; Direction &nbsp; Text-align &nbsp; Float</h2>
 
-        <div class="card rtl" id="intro">
-            <div>
-                <h1>رایگان و سریع فایل های CSS رو راست چین کن!</h1>
-            </div>
-            <form method="post" enctype="multipart/form-data" onsubmit="submitted()">
-                <label for=css><input type="file" name="css[]" multiple id="css" onchange="fileselected()" /><span id="cssValue">کلیک کن و یک یا چند فایل CSS انتخاب کن</span></label>
-                <input type="submit" value="راست چین کن!" />
+            <form action="index.php" method="post" enctype="multipart/form-data">
+                <label for=cssFiles>
+				<div class="dropzone">
+					<h3 id="cssValue">Click To Select Multiple Files.</h3>
+					<input type="file" class="d-none" id="cssFiles" name="css[]" multiple id="css" onchange="fileselected()" />
+				</div>
+                </label>
+                <input type="button" value="DO LTR -> RTL" class="refresh disable" >
             </form>
-        </div>
+		</div>
+
+		<div class="container" id="container"></div>
+
+		<div class="container" id="containerOutput"></div>
+
     </body>
 
-    <script>
+	<script src="./monaco-editor/min/vs/loader.js"></script>
+	<script src="jquery-3.6.0.min.js"></script>
 
-    function submitted(){
-        document.getElementById('intro').style.display = "none";
-        document.getElementById('submitted').style.display = "block";
+	<script>
+
+        var editorLTR = false;
+        var editorRTL = false;
+
+		require.config({ paths: { vs: './monaco-editor/min/vs' } });
+
+		require(['vs/editor/editor.main'], function () {
+			editorLTR = monaco.editor.create(document.getElementById('container'), {
+				theme: 'vs-dark',
+				value: getCode(false),
+				language: 'css'
+			});
+            editorLTR.getModel().onDidChangeContent((event) => {
+                enableRefresh();
+            });
+		});
+
+		require(['vs/editor/editor.main'], function () {
+			editorRTL = monaco.editor.create(document.getElementById('containerOutput'), {
+				theme: 'vs-dark',
+				value: getCode(),
+				language: 'css'
+			});
+		});
+
+		function getCode(output=true) {
+			if(!output)
+				return [
+					'*{',
+					'content: "کد استایل چپ چین را اینجا الصاق کن.\n یا میتوانی از جعبه سمت چپ ، \nاستایل ها را انتخاب کرده و منتظر پردازش باشی"',
+					'}',
+				].join('\n');
+			else
+				return [
+					'*{',
+					'content: "خروجی راست چین در اینجا نمایش \nداده خواهد شد"',
+					'}',
+				].join('\n');
+		}
+        
+
+    var defaultCssText = document.getElementById('cssValue').innerHTML;
+
+    function enableRefresh(){
+        $('.refresh').removeClass('disable');
+    }
+
+    function disableRefresh(){
+        $('.refresh').addClass('disable');
+    }
+
+    function updateRTL(EditedLTR){
+
+        var data = new FormData($('form')[0]);
+        data.append('editedValue', EditedLTR); 
+
+        $.ajax({
+            url: 'index.php',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            type: 'POST', // For jQuery < 1.9
+            success: function(data){
+
+                editorRTL.setValue(data)
+                document.getElementById('cssValue').innerHTML = defaultCssText;
+                disableRefresh()
+                
+            }
+        });     
+
     }
 
     function fileselected(){
-        var selectedFilesCount = document.getElementById('css').files.length;
-        document.getElementById('cssValue').innerHTML = selectedFilesCount + ' فایل انتخاب شد.';
+        var selectedFilesCount = document.getElementById('cssFiles').files.length;
+        var OutputText = (selectedFilesCount==1) ? selectedFilesCount + ' file selected. processing ...' : selectedFilesCount + ' files selected. processing ...';
+        document.getElementById('cssValue').innerHTML = OutputText;
+        setTimeout(() => {
+            $('form').submit();
+        }, 200);
     }
+
+    $('.refresh').on('click', function(){
+        if($('.refresh').hasClass('disable'))
+            return false;
+        else
+            updateRTL(editorLTR.getValue());
+    })
+
+    $( 'form' ).submit( function( e ) {
+        var data = new FormData($('form')[0]);
+        jQuery.each($('#cssFiles').files, function(i, file) {
+            data.append('css[]', file);
+        });
+        $.ajax({
+            url: 'index.php',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            type: 'POST', // For jQuery < 1.9
+            success: function(data){
+
+                editorRTL.setValue(data)
+                
+            }
+        });        
+            data.append('justecho', 'true'); 
+        $.ajax({
+            url: 'index.php',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            type: 'POST', // For jQuery < 1.9
+            success: function(data){
+
+                editorLTR.setValue(data)
+                document.getElementById('cssValue').innerHTML = defaultCssText;
+                disableRefresh()
+                
+            }
+        });   
+        e.preventDefault();
+    });
+
 
     </script>
 

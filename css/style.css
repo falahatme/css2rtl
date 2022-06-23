@@ -1,4 +1,4 @@
-@font-face {
+/*@font-face {
     font-family: "Vazir";
     src: url("https://fdn.fontcdn.ir/Fonts/Vazir/ad3cd4cbda94aee8578c1b622b9002f9dfe345c05870eb375a02da853d08f072.woff2") format("woff2");
     font-weight: 100;
@@ -33,7 +33,7 @@
     src: url("https://fdn.fontcdn.ir/Fonts/Vazir/71671477a4b62305fbd3ed4976a31c3c08520cf914656ece6b79543524a49132.woff2") format("woff2");
     font-weight: 900;
     font-style: normal;
-}
+}*/
 
 body{
     direction: ltr;
@@ -49,7 +49,7 @@ form{
 
 h1, p{
     direction: rtl;
-    font-family: 'Vazir';
+    /*font-family: 'Vazir';*/
     text-align: center;
 }
 
@@ -84,7 +84,7 @@ label[for=css]{
     justify-content: center;
     align-items: center;
     margin: 20px 0;
-    font-family: 'Vazir';
+    /*font-family: 'Vazir';*/
     direction: rtl;
 }
 
@@ -97,14 +97,83 @@ form > input{
     width: 100%;
     margin: 15px 0;
     padding: 15px;
-    font-family: 'Vazir';
     background: deepskyblue;
     border: none;
     color: white;
-    font-size: 13pt;
 }
 
 form > input:hover{
     cursor: pointer;
     background: rgb(77, 210, 255);
 }
+
+form > input.disable, form > input.disable:hover{
+    cursor: inherit;
+    background-color: gray;
+    border: none;
+}
+
+
+/* START EDITOR ZONE STYLES */
+
+
+body{
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+    display: flex; 
+    flex-direction: row;
+    overflow: hidden;
+}
+h1{
+    direction: rtl;
+    font-family: "Vazir", "iranSans", "B yekan";
+    font-size: 12pt;
+    text-align: center;
+}
+h2{
+    direction: ltr;
+    font-family: "poppins";
+    font-weight: 300;
+    font-size: 9pt;
+    text-align: center;
+    padding: 8px 6px;
+    border: 1px dashed silver;
+    border-radius: 5px;
+}
+.sidebar{
+    display: inline-block;
+    width: 180px;
+    height: 100vh;
+    border: 1px solid rgb(46, 46, 46);
+    color: white;
+    text-align: center;
+    padding: 0 6px;
+}
+.container{
+    display: inline-block;
+    width: calc(50% - 97px);
+    height: 100vh;
+    border: 1px solid rgb(46, 46, 46);
+}
+.dropzone{
+    text-align: center;
+    border: 1px dashed rgb(25, 171, 255);
+    color: rgb(25, 171, 255);
+    border-radius: 5px;
+}
+.dropzone h3{
+    font-family: "poppins";
+    font-weight: 300;
+    font-size: 10pt;
+}
+.dropzone:hover{
+    border: 1px dashed rgb(90, 194, 255);
+    color: rgb(90, 194, 255);
+    cursor: pointer;
+}
+.d-none{
+    display: none;
+}
+
+/* END EDITOR ZONE STYLES */

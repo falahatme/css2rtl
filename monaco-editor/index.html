@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+		<style>
+			body{
+				margin: 0;
+				padding: 0;
+				background-color: #1e1e1e;
+				display: flex;
+				overflow: hidden;
+			}
+			h1{
+				direction: rtl;
+				font-family: "Vazir", "iranSans", "B yekan";
+				font-size: 12pt;
+				text-align: center;
+			}
+			h2{
+				direction: ltr;
+				font-family: "poppins";
+				font-weight: 300;
+				font-size: 9pt;
+				text-align: center;
+				padding: 8px 6px;
+				border: 1px dashed silver;
+				border-radius: 5px;
+			}
+			.sidebar{
+				display: inline-block;
+				width: 180px;
+				height: 100vh;
+				border: 1px solid rgb(46, 46, 46);
+				color: white;
+				text-align: center;
+				padding: 0 6px;
+			}
+			.container{
+				display: inline-block;
+				width: calc(50% - 97px);
+				height: 100vh;
+				border: 1px solid rgb(46, 46, 46);
+			}
+			.dropzone{
+				text-align: center;
+				border: 1px dashed rgb(25, 171, 255);
+				color: rgb(25, 171, 255);
+				border-radius: 5px;
+			}
+			.dropzone h3{
+				font-family: "poppins";
+				font-weight: 300;
+				font-size: 10pt;
+			}
+			.dropzone:hover{
+				border: 1px dashed rgb(90, 194, 255);
+				color: rgb(90, 194, 255);
+				cursor: pointer;
+			}
+			.refresh{
+				margin: 12px 0;
+				width: 100%;
+				padding: 10px;
+				font-family: poppins;
+				background: rgb(25, 171, 255);
+				border: 1px solid rgb(90, 194, 255);
+				border-radius: 5px;
+				color: white;
+			}
+			.refresh:hover{	
+				border: 1px solid rgb(90, 194, 255);
+				background: rgb(90, 194, 255);
+				cursor: pointer;
+			}
+			.d-none{
+				display: none;
+			}
+
+		</style>
+
+	</head>
+
+	<body>
+
+		<div class="sidebar">
+			<h1>رایگان و سریع فایل های CSS را راست چین کن!</h1>
+			<h2>Margin &nbsp; Padding &nbsp; Border &nbsp; Direction &nbsp; Text-align &nbsp; Float</h2>
+			<label for="cssFiles">
+				<div class="dropzone">
+					<h3>Click To Select Multiple Files.</h3>
+					<input type="file" class="d-none" id="cssFiles" multiple />
+				</div>
+			</label>
+			<input type="button" value="refresh!" class="refresh" />
+		</div>
+
+		<div class="container" id="container"></div>
+
+		<div class="container" id="containerOutput"></div>
+
+	</body>
+
+
+	<script src="./min/vs/loader.js"></script>
+
+	<script>
+		require.config({ paths: { vs: './min/vs' } });
+
+		require(['vs/editor/editor.main'], function () {
+			var editorLTR = monaco.editor.create(document.getElementById('container'), {
+				theme: 'vs-dark',
+				value: getCode(false),
+				language: 'css'
+			});
+		});
+
+		require(['vs/editor/editor.main'], function () {
+			var editorRTL = monaco.editor.create(document.getElementById('containerOutput'), {
+				theme: 'vs-dark',
+				value: getCode(),
+				language: 'css'
+			});
+		});
+
+		function getCode(output=true) {
+			if(!output)
+				return [
+					'*{',
+					'content: "کد استایل چپ چین را اینجا الصاق کن.\n یا میتوانی از جعبه سمت چپ ، \nاستایل ها را انتخاب کرده و منتظر پردازش باشی"',
+					'}',
+				].join('\n');
+			else
+				return [
+					'*{',
+					'content: "خروجی راست چین در اینجا نمایش \nداده خواهد شد"',
+					'}',
+				].join('\n');
+		}
+	</script>
+
+</html>
